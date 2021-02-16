@@ -1,0 +1,38 @@
+{
+  "name": "brace/mod-session",
+  "type": "library",
+  "description": "Session Component for Brace App Framework",
+  "keywords": ["Session"],
+  "homepage": "https://infracamp.org",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jan Zimmermann",
+      "email": "jan@ueberruhr.de"
+    }
+  ],
+  "require": {
+    "brace/core": "*"
+  },
+
+  "require-dev": {
+    "phore/tester": "*",
+    "brace/mod-request-laminas": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Brace\\Session\\": "src"
+    },
+    "files": [
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+    }
+  },
+  "minimum-stability": "dev",
+  "extra": {
+    "branch-alias": {
+    }
+  }
+}
