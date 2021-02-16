@@ -16,8 +16,7 @@
   },
 
   "require-dev": {
-    "phore/tester": "*",
-    "brace/mod-request-laminas": "*"
+    "phore/tester": "*"
   },
   "autoload": {
     "psr-4": {
