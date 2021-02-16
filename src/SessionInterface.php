@@ -1,7 +1,11 @@
 <?php
 
+namespace Brace\Session;
 
-interface SessionInterface extends JsonSerializable{
+use JsonSerializable;
+
+interface SessionInterface extends JsonSerializable
+{
 
     /**
      * Stores a given value in the Session
