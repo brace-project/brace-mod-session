@@ -1,0 +1,19 @@
+<?php
+
+
+namespace Brace\Session;
+
+
+class FileSessionStorage implements SessionStorageInterface
+{
+
+    public function load(string $sessionId): array
+    {
+        // TODO: Implement load() method.
+    }
+
+    public function write(string $sessionId, array $data): void
+    {
+        // TODO: Implement write() method.
+    }
+}

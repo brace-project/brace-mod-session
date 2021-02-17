@@ -1,17 +1,26 @@
 <?php
 
+namespace Brace\Session;
 
-class Session implements SessionInterface
+class Session
 {
+
+    private array $data;
+
+    public function __construct(
+        private array &$sessionData,
+        private string $sessionId
+    )
+    {}
 
     public function set(string $key, $value): void
     {
-        // TODO: Implement set() method.
+        $this->data[$key] = $value;
     }
 
-    public function get(string $key, $default = null)
+    public function get(string $key)
     {
-        // TODO: Implement get() method.
+        return $this->sessionData[$key];
     }
 
     public function remove(string $key): void
@@ -21,12 +30,12 @@ class Session implements SessionInterface
 
     public function clear(): void
     {
-        // TODO: Implement clear() method.
+        $this->data = [];
     }
 
     public function has(string $key): bool
     {
-        // TODO: Implement has() method.
+        return array_key_exists($key, $this->data);
     }
 
     public function hasChanged(): bool
