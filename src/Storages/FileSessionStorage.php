@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brace\Session;
+namespace Brace\Session\Storage;
 
 
 use Phore\Core\Exception\NotFoundException;

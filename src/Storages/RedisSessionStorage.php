@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brace\Session;
+namespace Brace\Session\Storage;
 
 
 class RedisSessionStorage implements SessionStorageInterface
