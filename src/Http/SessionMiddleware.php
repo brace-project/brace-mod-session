@@ -19,21 +19,20 @@ class SessionMiddleware extends BraceAbstractMiddleware
     public function __construct(
         private SessionStorageInterface $sessionStorage,
         private int $ttl = 86400,
-        )
-    {}
+    ){}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $responseCookies = [];
         $requestCookies = $request->getCookieParams();
         $sessionId = $requestCookies[self::COOKIE_NAME];
-        if( ! $this->isValidSession($sessionId)) {
+        if (!$this->isValidSession($sessionId)) { //Todo: update expires if Session is Valid
             $sessionId = $this->generateSession($responseCookies);
         }
         $sessionData = $this->sessionStorage->load($sessionId);
 
-        $this->app->define('session', new DiService(function() use ($sessionId, &$sessionData){
-            return new Session($sessionData, $sessionId);
+        $this->app->define('session', new DiService(function () use ($sessionId, &$sessionData) {
+            return new Session($sessionData, $sessionData, $sessionId);
         }));
 
         $response = $handler->handle($request);
@@ -42,7 +41,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
         //Todo: destroy Session
         //Todo: max Expires
 
-        foreach($responseCookies as $key => $value) {
+        foreach ($responseCookies as $key => $value) {
             $response = $response->withHeader(
                 'Set-Cookie',
                 sprintf(
@@ -66,14 +65,14 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
     private function isValidSession(string $sessionId = null): bool
     {
-        if($sessionId === null) {
+        if ($sessionId === null) {
             return false;
         }
         $data = $this->sessionStorage->load($sessionId);
-        if($data === null) {
+        if ($data === null) {
             return false;
         }
-        if($data['__expires'] < time()) {
+        if ($data['__expires'] < time()) {
             return false;
         }
         return true;

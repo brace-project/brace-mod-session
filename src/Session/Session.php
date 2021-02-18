@@ -9,9 +9,9 @@ class Session
 
     public function __construct(
         private array &$sessionData,
+        private array $originalSessionData,
         private string $sessionId
-    )
-    {}
+    ){}
 
     public function set(string $key, $value): void
     {
@@ -25,7 +25,7 @@ class Session
 
     public function remove(string $key): void
     {
-        // TODO: Implement remove() method.
+        unset($this->data[$key]);
     }
 
     public function clear(): void
@@ -40,16 +40,16 @@ class Session
 
     public function hasChanged(): bool
     {
-        // TODO: Implement hasChanged() method.
+        return $this->sessionData !== $this->originalSessionData;
     }
 
     public function isEmpty(): bool
     {
-        // TODO: Implement isEmpty() method.
+        return ! count($this->data);
     }
 
     public function jsonSerialize(): object
     {
-        // TODO: Implement jsonSerialize() method.
+        return (object) $this->data;
     }
 }

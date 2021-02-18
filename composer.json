@@ -12,7 +12,9 @@
     }
   ],
   "require": {
-    "brace/core": "*"
+    "phore/filesystem": "dev-master",
+    "phore/objectstore": "dev-master",
+    "brace/core": "dev-main"
   },
 
   "require-dev": {

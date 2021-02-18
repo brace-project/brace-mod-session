@@ -4,8 +4,11 @@
 namespace Brace\Session;
 
 
-class FileSessionStorage implements SessionStorageInterface
+class RedisSessionStorage implements SessionStorageInterface
 {
+    public function __construct(string $connection)
+    {
+    }
 
     public function load(string $sessionId): array
     {
@@ -16,4 +19,6 @@ class FileSessionStorage implements SessionStorageInterface
     {
         // TODO: Implement write() method.
     }
+
+
 }
