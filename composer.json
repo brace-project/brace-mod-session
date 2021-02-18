@@ -18,7 +18,7 @@
   },
 
   "require-dev": {
-    "phore/tester": "*"
+    "phpunit/phpunit": "*"
   },
   "autoload": {
     "psr-4": {

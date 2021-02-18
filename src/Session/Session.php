@@ -2,10 +2,11 @@
 
 namespace Brace\Session;
 
+use JetBrains\PhpStorm\Pure;
+
 class Session
 {
 
-    private array $data;
 
     public function __construct(
         private array &$sessionData,
@@ -13,43 +14,84 @@ class Session
         private string $sessionId
     ){}
 
-    public function set(string $key, $value): void
+    /**
+     * Retrieve all data for purposes of persistence.
+     */
+    public function toArray() : array
     {
-        $this->data[$key] = $value;
+        return $this->sessionData;
     }
 
-    public function get(string $key)
+    /**
+     * Set a value within the session.
+     *
+     * Values MUST be serializable in any format; we recommend ensuring the
+     * values are JSON serializable for greatest portability.
+     *
+     * @param string $key
+     * @param mixed $value
+     */
+    public function set(string $key, $value): void
+    {
+        $this->sessionData[$key] = $value;
+    }
+
+    /**
+     * Retrieve a value from the session.
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public function get(string $key): mixed
     {
         return $this->sessionData[$key];
     }
 
+    /**
+     * Remove a value from the session.
+     * @param string $key
+     */
     public function remove(string $key): void
     {
-        unset($this->data[$key]);
+        unset($this->sessionData[$key]);
     }
 
+    /**
+     * Clear all values.
+     */
     public function clear(): void
     {
-        $this->data = [];
+        $this->sessionData = [];
     }
 
-    public function has(string $key): bool
+    /**
+     * Whether or not the container has the given key.
+     * @param string $key
+     * @return bool
+     */
+    #[Pure] public function has(string $key): bool
     {
-        return array_key_exists($key, $this->data);
+        return array_key_exists($key, $this->sessionData);
     }
 
+    /**
+     * Checks whether the session has changed its contents since its lifecycle start
+     */
     public function hasChanged(): bool
     {
         return $this->sessionData !== $this->originalSessionData;
     }
 
-    public function isEmpty(): bool
+    /**
+     * Checks whether the session contains any data
+     */
+    #[Pure] public function isEmpty(): bool
     {
-        return ! count($this->data);
+        return ! count($this->sessionData);
     }
 
     public function jsonSerialize(): object
     {
-        return (object) $this->data;
+        return (object) $this->sessionData;
     }
 }

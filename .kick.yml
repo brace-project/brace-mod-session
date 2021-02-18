@@ -3,13 +3,14 @@
 version: 1
 from: "nfra/kickstart-flavor-php:unstable"
 
-packages: [php8.0-curl, php8.0-http, php8.0-raphf]
+packages: [php8.0-curl, php8.0-http, php8.0-raphf, php8.0-xml]
 
 command:
   build:
     - "composer update"
   init:
   test:
+    - "phpunit --testdox"
   run:
   dev:
     - "echo 'I am executed in dev mode'"
