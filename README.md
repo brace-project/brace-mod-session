@@ -5,7 +5,7 @@ Php Session
 ### Installation
 
 ```sh
-composer require brace/session
+composer require brace/mod-session
 ```
 
 ### Usage
