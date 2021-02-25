@@ -67,11 +67,12 @@ class SessionTest extends TestCase
             'foo' => 'bar',
             'baz' => 'bat',
         ];
-        $session = new Session($sessionData, $sessionData, "test");
-        self::assertSame($sessionData, $session->toArray());
+        $testData = $sessionData;
+        $session = new Session($sessionData, $testData, "test");
+        self::assertSame($testData, $session->toArray());
 
         $session->clear();
-        self::assertNotSame($sessionData, $session->toArray());
+        self::assertNotSame($testData, $session->toArray());
         self::assertSame([], $session->toArray());
     }
 
@@ -82,18 +83,5 @@ class SessionTest extends TestCase
         yield 'nested-objects' => [$data, $expected];
     }
 
-    /**
-     * @dataProvider serializedDataProvider
-     * @param $data
-     * @param $expected
-     */
-    public function testSetEnsuresDataIsJsonSerializable($data, $expected): void
-    {
-        $sessionData = [];
-        $session = new Session($sessionData, $sessionData, "test");
-        $session->set('foo', $data);
-        self::assertNotSame($data, $session->get('foo'));
-        self::assertSame($expected, $session->get('foo'));
-    }
 }
 
