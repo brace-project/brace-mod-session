@@ -3,10 +3,10 @@
 namespace Brace\Session;
 
 use Brace\Core\Base\BraceAbstractMiddleware;
+use Brace\Session\Storage\SessionStorageInterface;
 use Phore\Di\Container\Producer\DiService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 
@@ -19,7 +19,9 @@ class SessionMiddleware extends BraceAbstractMiddleware
     public function __construct(
         private SessionStorageInterface $sessionStorage,
         private int $ttl = 86400,
-    ){}
+    )
+    {
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

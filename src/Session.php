@@ -12,12 +12,14 @@ class Session
         private array &$sessionData,
         private array $originalSessionData,
         private string $sessionId
-    ){}
+    )
+    {
+    }
 
     /**
      * Retrieve all data for purposes of persistence.
      */
-    public function toArray() : array
+    public function toArray(): array
     {
         return $this->sessionData;
     }
@@ -87,11 +89,11 @@ class Session
      */
     #[Pure] public function isEmpty(): bool
     {
-        return ! count($this->sessionData);
+        return !count($this->sessionData);
     }
 
     public function jsonSerialize(): object
     {
-        return (object) $this->sessionData;
+        return (object)$this->sessionData;
     }
 }

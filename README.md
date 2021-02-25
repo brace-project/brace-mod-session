@@ -1,3 +1,9 @@
+[![Action Status](https://github.com/brace-project/brace-mod-session/workflows/test/badge.svg)](https://github.com/brace-project/brace-mod-session/actions)
+[![Latest Stable Version](https://poser.pugx.org/brace/mod-session/v)](//packagist.org/packages/brace/mod-session)
+[![Total Downloads](https://poser.pugx.org/brace/mod-session/downloads)](//packagist.org/packages/brace/mod-session)
+[![License](https://poser.pugx.org/brace/mod-session/license)](//packagist.org/packages/brace/mod-session)
+
+
 # brace-mod-session
 
 Php Session
