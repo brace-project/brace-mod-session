@@ -10,7 +10,7 @@ command:
     - "composer update"
   init:
   test:
-    - "phpunit --testdox"
+    - "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text --testdox"
   run:
   dev:
     - "echo 'I am executed in dev mode'"
