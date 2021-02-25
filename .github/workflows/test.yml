@@ -12,7 +12,7 @@ jobs:
         run: "sudo curl -o /usr/bin/kickstart 'https://raw.githubusercontent.com/nfra-project/nfra-kickstart/master/dist/kickstart.sh' && sudo chmod +x /usr/bin/kickstart"
 
       - name: Build Kickstart Container
-        run: "kickstart"
+        run: "kickstart && kick dev"
 
       - name: Run Test
         run: "kick test"
