@@ -6,13 +6,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: Install Kickstart
         run: "sudo curl -o /usr/bin/kickstart 'https://raw.githubusercontent.com/nfra-project/nfra-kickstart/master/dist/kickstart.sh' && sudo chmod +x /usr/bin/kickstart"
 
-      - name: Build Kickstart Container
-        run: "kickstart && kick dev"
-
-      - name: Run Test
-        run: "kick test"
+      - name: Build Kickstart Container And Run Test
+        run: "kickstart :test"
