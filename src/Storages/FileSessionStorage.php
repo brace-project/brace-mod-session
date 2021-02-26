@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brace\Session\Storage;
+namespace Brace\Session\Storages;
 
 
 use Phore\Core\Exception\NotFoundException;
@@ -22,6 +22,7 @@ class FileSessionStorage implements SessionStorageInterface
         try {
             return $this->objectStore->object($sessionId . ".json")->getJson();
         } catch (NotFoundException $e) {
+            throw $e;
         }
     }
 

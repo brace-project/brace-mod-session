@@ -61,7 +61,8 @@ class SessionTest extends TestCase
         self::assertFalse($session->has('foo'));
     }
 
-    public function testClearingSessionRemovesAllData(): void
+
+    public function testClearingSessionRemovesAllData(): Session
     {
         $sessionData = [
             'foo' => 'bar',
@@ -74,14 +75,16 @@ class SessionTest extends TestCase
         $session->clear();
         self::assertNotSame($testData, $session->toArray());
         self::assertSame([], $session->toArray());
+        return $session;
     }
 
-    public function serializedDataProvider(): iterable
+    /**
+     * @depends testClearingSessionRemovesAllData
+     * @param Session $session
+     */
+    public function testSessionIsEmpty(Session $session): void
     {
-        $data = (object)['test_case' => $this];
-        $expected = json_decode(json_encode($data, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION), true, 512, JSON_THROW_ON_ERROR);
-        yield 'nested-objects' => [$data, $expected];
+        self::assertTrue($session->isEmpty());
     }
-
 }
 

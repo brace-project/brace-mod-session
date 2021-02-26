@@ -3,14 +3,14 @@
 version: 1
 from: "nfra/kickstart-flavor-php:unstable"
 
-packages: [php8.0-curl, php8.0-http, php8.0-raphf, php8.0-xml]
+packages: [php8.0-curl, php8.0-http, php8.0-raphf, php8.0-xml, php-xdebug]
 
 command:
   build:
     - "composer update"
   init:
   test:
-    - "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text --testdox"
+    - "XDEBUG_MODE=coverage phpunit --coverage-text --testdox"
   run:
   dev:
     - "echo 'I am executed in dev mode'"

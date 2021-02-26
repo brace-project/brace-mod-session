@@ -1,6 +1,6 @@
 <?php
 
-namespace Brace\Session\Storage;
+namespace Brace\Session\Storages;
 
 interface SessionStorageInterface
 {
