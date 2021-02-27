@@ -12,8 +12,7 @@ class Session
         private array &$sessionData,
         private array $originalSessionData,
         private string $sessionId
-    )
-    {
+    ) {
     }
 
     /**

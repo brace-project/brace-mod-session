@@ -33,8 +33,8 @@ class FileSessionStorageTest extends TestCase
      */
     public function testWriteData(FileSessionStorage $FileSessionStorage): FileSessionStorage
     {
-        $FileSessionStorage->write("foo", ['foo'=> 'bar']);
-        $FileSessionStorage->write("bar", ['bar'=> 'foo']);
+        $FileSessionStorage->write("foo", ['foo' => 'bar']);
+        $FileSessionStorage->write("bar", ['bar' => 'foo']);
         self::assertFileExists('../tmp/foo.json');
         self::assertFileExists('../tmp/bar.json');
         return $FileSessionStorage;

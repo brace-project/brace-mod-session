@@ -3,7 +3,7 @@
 namespace Brace\Session;
 
 use Brace\Core\Base\BraceAbstractMiddleware;
-use Brace\Session\Storage\SessionStorageInterface;
+use Brace\Session\Storages\SessionStorageInterface;
 use Phore\Di\Container\Producer\DiService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,23 +19,27 @@ class SessionMiddleware extends BraceAbstractMiddleware
     public function __construct(
         private SessionStorageInterface $sessionStorage,
         private int $ttl = 86400,
-    )
-    {
+    ) {
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $responseCookies = [];
         $requestCookies = $request->getCookieParams();
-        $sessionId = $requestCookies[self::COOKIE_NAME];
+        $sessionId = $requestCookies[self::COOKIE_NAME] ?? null;
         if (!$this->isValidSession($sessionId)) { //Todo: update expires if Session is Valid
             $sessionId = $this->generateSession($responseCookies);
         }
         $sessionData = $this->sessionStorage->load($sessionId);
 
-        $this->app->define('session', new DiService(function () use ($sessionId, &$sessionData) {
-            return new Session($sessionData, $sessionData, $sessionId);
-        }));
+        $this->app->define(
+            'session',
+            new DiService(
+                function () use ($sessionId, &$sessionData) {
+                    return new Session($sessionData, $sessionData, $sessionId);
+                }
+            )
+        );
 
         $response = $handler->handle($request);
         $this->sessionStorage->write($sessionId, $sessionData);
@@ -71,7 +75,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
             return false;
         }
         $data = $this->sessionStorage->load($sessionId);
-        if ($data === null) {
+        if ($data === null || $data === []) {
             return false;
         }
         if ($data['__expires'] < time()) {

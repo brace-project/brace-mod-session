@@ -2,7 +2,9 @@
   "name": "brace/mod-session",
   "type": "library",
   "description": "Session Component for Brace App Framework",
-  "keywords": ["Session"],
+  "keywords": [
+    "Session"
+  ],
   "homepage": "https://infracamp.org",
   "license": "MIT",
   "authors": [
@@ -16,9 +18,9 @@
     "phore/objectstore": "dev-master",
     "brace/core": "dev-main"
   },
-
   "require-dev": {
-    "phpunit/phpunit": "*"
+    "phpunit/phpunit": "*",
+    "laminas/laminas-diactoros": "2.6.x-dev"
   },
   "autoload": {
     "psr-4": {
@@ -29,6 +31,7 @@
   },
   "autoload-dev": {
     "psr-4": {
+      "Test\\": "test"
     }
   },
   "minimum-stability": "dev",
