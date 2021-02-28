@@ -7,7 +7,6 @@ use Brace\Session\Session;
 use Brace\Session\SessionMiddleware;
 use Brace\Session\Storages\FileSessionStorage;
 use Laminas\Diactoros\Response;
-use Phore\Core\Exception\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -53,21 +52,6 @@ class SessionMiddlewareTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
-     * @throws NotFoundException
-     */
-    public function testGenerateSession(): void
-    {
-        $generateSession = self::getMethod('generateSession', $this->middleware);
-        self::assertTrue($generateSession->isPrivate());
-        $sessionId = $generateSession->invokeArgs($this->middleware, []);
-        $data = self::$fileSessionStorage->load($sessionId);
-        self::assertArrayHasKey('__expires', $data);
-        self::assertTrue($data['__expires'] >= time());
-        self::assertEquals(32, strlen($sessionId));
-    }
-
-    /**
      * @return ReflectionMethod
      * @throws ReflectionException
      */
@@ -83,9 +67,9 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionDefaultArgs(ReflectionMethod $isValidSession): void
+    public function testIsValidSessionEmptySessionData(ReflectionMethod $isValidSession): void
     {
-        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, [[]]));
     }
 
     /**
@@ -103,21 +87,9 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionDataIsEmpty(ReflectionMethod $isValidSession): void
-    {
-        self::$fileSessionStorage->write('foo', []);
-        self::assertFalse($isValidSession->invokeArgs($this->middleware, ['foo']));
-    }
-
-    /**
-     * @depends testIsValidSessionAndIsPrivateMethod
-     * @param ReflectionMethod $isValidSession
-     * @throws ReflectionException
-     */
     public function testIsValidSessionDataIsExpired(ReflectionMethod $isValidSession): void
     {
-        self::$fileSessionStorage->write('bar', ['__expires' => time() - 1]);
-        self::assertFalse($isValidSession->invokeArgs($this->middleware, ['bar']));
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, [['__expires' => time() - 1]]));
     }
 
     /**
@@ -127,8 +99,7 @@ class SessionMiddlewareTest extends TestCase
      */
     public function testIsValidSessionDataIsValid(ReflectionMethod $isValidSession): void
     {
-        self::$fileSessionStorage->write('foobar', ['__expires' => time() + 10]);
-        self::assertTrue($isValidSession->invokeArgs($this->middleware, ['foobar']));
+        self::assertTrue($isValidSession->invokeArgs($this->middleware, [['__expires' => time() + 10]]));
     }
 
     public function testSessionMiddleware(): void

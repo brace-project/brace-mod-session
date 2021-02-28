@@ -28,15 +28,13 @@ class SessionMiddleware extends BraceAbstractMiddleware
         $responseCookies = [];
         $requestCookies = $request->getCookieParams();
         $sessionId = $requestCookies[self::COOKIE_NAME] ?? null;
-        if (!$this->isValidSession($sessionId)) {
-            $sessionId = $this->generateSession();
+        $sessionData = $sessionId === null ? null : $this->sessionStorage->load($sessionId);
+        if (!$this->isValidSession($sessionData)) {
+            $sessionId = phore_random_str(32);
+            $sessionData = $this->setUpDefaultSessionData();
         }
+        //Todo: Update expires if is valid
         $responseCookies[self::COOKIE_NAME] = $sessionId;
-        /*
-         * Todo: else part to update ttl
-         * Todo: max ttl reached destroy Session create new ?
-         */
-        $sessionData = $this->sessionStorage->load($sessionId);
 
         $this->app->define(
             self::SESSION_ATTRIBUTE,
@@ -49,7 +47,6 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
         $response = $handler->handle($request);
         $this->sessionStorage->write($sessionId, $sessionData);
-
 
         foreach ($responseCookies as $key => $value) {
             $response = $response->withHeader(
@@ -65,36 +62,33 @@ class SessionMiddleware extends BraceAbstractMiddleware
         return $response;
     }
 
+    //Todo: define some DefaultSessionData and Write test for this method
     /**
-     * generates a new SessionId and also writes it into the $sessionStorage
+     * Defines the Default Session Data
      *
-     * @return string
+     * @return int[]
      */
-    private function generateSession(): string
+    private function setUpDefaultSessionData(): array
     {
-        $sessionId = phore_random_str(32);
-        $this->sessionStorage->write($sessionId, ['__expires' => time() + $this->ttl]);
-        return $sessionId;
+        return ['__expires' => time() + $this->ttl];
     }
 
     /**
      * checks whether a given $sessionId is valid or not
      *
-     * @param string|null $sessionId
+     * @param array|null $sessionData
      * @return bool
      */
-    private function isValidSession(string $sessionId = null): bool
+    private function isValidSession(?array $sessionData): bool
     {
-        if ($sessionId === null) {
+        if ($sessionData === null || $sessionData === []) {
             return false;
         }
-        $data = $this->sessionStorage->load($sessionId);
-        if ($data === null || $data === []) {
-            return false;
-        }
-        if ($data['__expires'] < time()) {
+        if (array_key_exists('__expires', $sessionData)
+            && $sessionData['__expires'] < time()) { // Todo: max ttl reached ?
             return false;
         }
         return true;
     }
+
 }

@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Brace\Session\Storages;
-
 
 use Phore\Core\Exception\NotFoundException;
 use Phore\ObjectStore\Driver\FileSystemObjectStoreDriver;
@@ -18,15 +16,13 @@ class FileSessionStorage implements SessionStorageInterface
         $this->objectStore = new ObjectStore(new FileSystemObjectStoreDriver($connection));
     }
 
-    /** {@inheritdoc}
-     * @throws NotFoundException
-     */
-    public function load(string $sessionId): array
+    /** {@inheritdoc} */
+    public function load(string $sessionId): ?array
     {
         try {
             return $this->objectStore->object($sessionId . ".json")->getJson();
-        } catch (NotFoundException $e) {
-            throw $e;
+        } catch (NotFoundException) {
+            return null;
         }
     }
 
@@ -35,6 +31,4 @@ class FileSessionStorage implements SessionStorageInterface
     {
         $this->objectStore->object($sessionId . ".json")->putJson($data);
     }
-
-
 }

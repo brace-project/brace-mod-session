@@ -61,7 +61,6 @@ class SessionTest extends TestCase
         self::assertFalse($session->has('foo'));
     }
 
-
     public function testClearingSessionRemovesAllData(): Session
     {
         $sessionData = [

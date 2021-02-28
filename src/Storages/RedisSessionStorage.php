@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Brace\Session\Storages;
-
 
 class RedisSessionStorage implements SessionStorageInterface
 {
@@ -12,7 +10,7 @@ class RedisSessionStorage implements SessionStorageInterface
     }
 
     /** {@inheritdoc} */
-    public function load(string $sessionId): array
+    public function load(string $sessionId): ?array
     {
         // TODO: Implement load() method.
     }
@@ -22,6 +20,4 @@ class RedisSessionStorage implements SessionStorageInterface
     {
         // TODO: Implement write() method.
     }
-
-
 }

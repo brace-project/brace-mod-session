@@ -1,10 +1,9 @@
 <?php
 
-namespace test;
+namespace Test;
 
 use Brace\Session\Storages\FileSessionStorage;
 use Brace\Session\Storages\SessionStorageInterface;
-use Phore\Core\Exception\NotFoundException;
 use PHPUnit\Framework\TestCase;
 
 class FileSessionStorageTest extends TestCase
@@ -43,7 +42,6 @@ class FileSessionStorageTest extends TestCase
     /**
      * @depends testWriteData
      * @param FileSessionStorage $FileSessionStorage
-     * @throws NotFoundException
      */
     public function testLoadData(FileSessionStorage $FileSessionStorage): void
     {
@@ -59,10 +57,9 @@ class FileSessionStorageTest extends TestCase
      * @depends testWriteData
      * @param FileSessionStorage $FileSessionStorage
      */
-    public function testFileDoesntExistThrowsException(FileSessionStorage $FileSessionStorage): void
+    public function testFileDoesntExistReturnNull(FileSessionStorage $FileSessionStorage): void
     {
-        $this->expectException(NotFoundException::class);
-        $FileSessionStorage->load("foobar");
+        self::assertEquals(null, $FileSessionStorage->load("foobar"));
     }
 
 }

@@ -11,12 +11,12 @@ interface SessionStorageInterface
     public function __construct(string $connection);
 
     /**
-     * loads the $data written under the given $sessionID
+     * loads the $data written under the given $sessionID or returns null if no data exists
      *
      * @param string $sessionId
-     * @return array
+     * @return array|null
      */
-    public function load(string $sessionId): array;
+    public function load(string $sessionId): ?array;
 
     /**
      * persists the given $data array under the $sessionId key into the chosen Storage
@@ -25,5 +25,4 @@ interface SessionStorageInterface
      * @param array $data
      */
     public function write(string $sessionId, array $data): void;
-
 }
