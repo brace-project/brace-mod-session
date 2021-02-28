@@ -28,9 +28,14 @@ class SessionMiddleware extends BraceAbstractMiddleware
         $responseCookies = [];
         $requestCookies = $request->getCookieParams();
         $sessionId = $requestCookies[self::COOKIE_NAME] ?? null;
-        if (!$this->isValidSession($sessionId)) { //Todo: update expires if Session is Valid
-            $sessionId = $this->generateSession($responseCookies);
+        if (!$this->isValidSession($sessionId)) {
+            $sessionId = $this->generateSession();
         }
+        $responseCookies[self::COOKIE_NAME] = $sessionId;
+        /*
+         * Todo: else part to update ttl
+         * Todo: max ttl reached destroy Session create new ?
+         */
         $sessionData = $this->sessionStorage->load($sessionId);
 
         $this->app->define(
@@ -45,8 +50,6 @@ class SessionMiddleware extends BraceAbstractMiddleware
         $response = $handler->handle($request);
         $this->sessionStorage->write($sessionId, $sessionData);
 
-        //Todo: destroy Session
-        //Todo: max Expires
 
         foreach ($responseCookies as $key => $value) {
             $response = $response->withHeader(
@@ -62,14 +65,24 @@ class SessionMiddleware extends BraceAbstractMiddleware
         return $response;
     }
 
-    private function generateSession(array &$responseCookies): string
+    /**
+     * generates a new SessionId and also writes it into the $sessionStorage
+     *
+     * @return string
+     */
+    private function generateSession(): string
     {
         $sessionId = phore_random_str(32);
-        $responseCookies[self::COOKIE_NAME] = $sessionId;
         $this->sessionStorage->write($sessionId, ['__expires' => time() + $this->ttl]);
         return $sessionId;
     }
 
+    /**
+     * checks whether a given $sessionId is valid or not
+     *
+     * @param string|null $sessionId
+     * @return bool
+     */
     private function isValidSession(string $sessionId = null): bool
     {
         if ($sessionId === null) {

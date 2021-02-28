@@ -2,16 +2,13 @@
 
 namespace Test;
 
-use Brace\Core\Base\BraceAbstractMiddleware;
 use Brace\Core\BraceApp;
 use Brace\Session\Session;
 use Brace\Session\SessionMiddleware;
 use Brace\Session\Storages\FileSessionStorage;
 use Laminas\Diactoros\Response;
+use Phore\Core\Exception\NotFoundException;
 use PHPUnit\Framework\TestCase;
-use Laminas\Diactoros\ServerRequest;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionClass;
@@ -39,6 +36,14 @@ class SessionMiddlewareTest extends TestCase
         system('sudo rm -R /tmp/*');
     }
 
+    /**
+     * Gets the private Method of a class and sets its accessibility
+     *
+     * @param $name
+     * @param $obj
+     * @return ReflectionMethod
+     * @throws ReflectionException
+     */
     protected static function getMethod($name, $obj): ReflectionMethod
     {
         $class = new ReflectionClass($obj);
@@ -47,20 +52,25 @@ class SessionMiddlewareTest extends TestCase
         return $method;
     }
 
-
+    /**
+     * @throws ReflectionException
+     * @throws NotFoundException
+     */
     public function testGenerateSession(): void
     {
         $generateSession = self::getMethod('generateSession', $this->middleware);
         self::assertTrue($generateSession->isPrivate());
-        $responseCookies = [];
-        $sessionId = $generateSession->invokeArgs($this->middleware, [&$responseCookies]);
-        self::assertArrayHasKey($this->middleware::COOKIE_NAME, $responseCookies);
+        $sessionId = $generateSession->invokeArgs($this->middleware, []);
         $data = self::$fileSessionStorage->load($sessionId);
         self::assertArrayHasKey('__expires', $data);
         self::assertTrue($data['__expires'] >= time());
         self::assertEquals(32, strlen($sessionId));
     }
 
+    /**
+     * @return ReflectionMethod
+     * @throws ReflectionException
+     */
     public function testIsValidSessionAndIsPrivateMethod(): ReflectionMethod
     {
         $isValidSession = self::getMethod('isValidSession', $this->middleware);
@@ -125,6 +135,7 @@ class SessionMiddlewareTest extends TestCase
     {
         $app = new BraceApp();
         $this->middleware->_setApp($app);
+        //send Request with empty Cookies
         $response = $this->middleware->process(
             $this->createMock(ServerRequestInterface::class),
             $this->writingMiddleware($app)
@@ -141,6 +152,43 @@ class SessionMiddlewareTest extends TestCase
         self::assertArrayHasKey('foo', $data);
         self::assertArrayHasKey('__expires', $data);
         self::assertEquals('bar', $data['foo']);
+        self::assertTrue($data['__expires'] > time());
+
+        //send Request with different SessID thats not saved
+        $response = $this->middleware->process(
+            $this->writingServerRequest(),
+            $this->writingMiddleware($app)
+        );
+        $cookies = $response->getHeader('Set-Cookie');
+        $explode = explode(';', $cookies[0]);
+        $leftside = explode('=', $explode[0]);
+        $sessIdSecondRequest = $leftside[1];
+        self::assertNotEquals($sessId, $sessIdSecondRequest);
+        $sessId = $leftside[1];
+        self::assertEquals('SESSID', $leftside[0]);
+        self::assertEquals('path', $rightside[0]);
+        self::assertEquals('session.cookie_path', $rightside[1]);
+        $data = self::$fileSessionStorage->load($sessId);
+        self::assertArrayHasKey('foo', $data);
+        self::assertArrayHasKey('__expires', $data);
+        self::assertEquals('bar', $data['foo']);
+        self::assertTrue($data['__expires'] > time());
+
+        //send Request with same Cookie
+        //change value of 'foo'
+        $response = $this->middleware->process(
+            $this->writingServerRequest($sessId),
+            $this->writingMiddleware($app, 'foobar')
+        );
+        $cookies = $response->getHeader('Set-Cookie');
+        $explode = explode(';', $cookies[0]);
+        $leftside = explode('=', $explode[0]);
+        $sessIdSecondRequest = $leftside[1];
+        self::assertEquals($sessId, $sessIdSecondRequest);
+        $data = self::$fileSessionStorage->load($sessId);
+        self::assertArrayHasKey('foo', $data);
+        self::assertArrayHasKey('__expires', $data);
+        self::assertEquals('foobar', $data['foo']);
         self::assertTrue($data['__expires'] > time());
     }
 
@@ -169,4 +217,26 @@ class SessionMiddlewareTest extends TestCase
         return $middleware;
     }
 
+
+    private function writingServerRequest(string $sessId = 'bar'): ServerRequestInterface
+    {
+        $middleware = $this->middleware;
+        return $this->fakeCookieParams(
+            static function () use ($middleware, $sessId) {
+                return [$middleware::COOKIE_NAME => $sessId];
+            }
+        );
+    }
+
+    private function fakeCookieParams(callable $callback): ServerRequestInterface
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $request
+            ->expects(self::once())
+            ->method('getCookieParams')
+            ->willReturnCallback($callback);
+
+        return $request;
+    }
 }

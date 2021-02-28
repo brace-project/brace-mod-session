@@ -32,7 +32,7 @@ class Session
      * @param string $key
      * @param mixed $value
      */
-    public function set(string $key, $value): void
+    public function set(string $key, mixed $value): void
     {
         $this->sessionData[$key] = $value;
     }

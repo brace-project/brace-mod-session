@@ -12,11 +12,15 @@ class FileSessionStorage implements SessionStorageInterface
 {
     private ObjectStore $objectStore;
 
+    /** {@inheritdoc} */
     public function __construct(string $connection)
     {
         $this->objectStore = new ObjectStore(new FileSystemObjectStoreDriver($connection));
     }
 
+    /** {@inheritdoc}
+     * @throws NotFoundException
+     */
     public function load(string $sessionId): array
     {
         try {
@@ -26,6 +30,7 @@ class FileSessionStorage implements SessionStorageInterface
         }
     }
 
+    /** {@inheritdoc} */
     public function write(string $sessionId, array $data): void
     {
         $this->objectStore->object($sessionId . ".json")->putJson($data);
