@@ -15,6 +15,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
     public const COOKIE_NAME = 'SESSID';
     public const COOKIE_PATH = 'session.cookie_path';
+    public const SESSION_ATTRIBUTE = 'session';
 
     public function __construct(
         private SessionStorageInterface $sessionStorage,
@@ -33,7 +34,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
         $sessionData = $this->sessionStorage->load($sessionId);
 
         $this->app->define(
-            'session',
+            self::SESSION_ATTRIBUTE,
             new DiService(
                 function () use ($sessionId, &$sessionData) {
                     return new Session($sessionData, $sessionData, $sessionId);

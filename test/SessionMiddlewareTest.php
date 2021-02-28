@@ -2,6 +2,7 @@
 
 namespace Test;
 
+use Brace\Core\Base\BraceAbstractMiddleware;
 use Brace\Core\BraceApp;
 use Brace\Session\Session;
 use Brace\Session\SessionMiddleware;
@@ -118,6 +119,54 @@ class SessionMiddlewareTest extends TestCase
     {
         self::$fileSessionStorage->write('foobar', ['__expires' => time() + 10]);
         self::assertTrue($isValidSession->invokeArgs($this->middleware, ['foobar']));
+    }
+
+    public function testSessionMiddleware(): void
+    {
+        $app = new BraceApp();
+        $this->middleware->_setApp($app);
+        $response = $this->middleware->process(
+            $this->createMock(ServerRequestInterface::class),
+            $this->writingMiddleware($app)
+        );
+        $cookies = $response->getHeader('Set-Cookie');
+        $explode = explode(';', $cookies[0]);
+        $leftside = explode('=', $explode[0]);
+        $rightside = explode('=', trim($explode[1]));
+        $sessId = $leftside[1];
+        self::assertEquals('SESSID', $leftside[0]);
+        self::assertEquals('path', $rightside[0]);
+        self::assertEquals('session.cookie_path', $rightside[1]);
+        $data = self::$fileSessionStorage->load($sessId);
+        self::assertArrayHasKey('foo', $data);
+        self::assertArrayHasKey('__expires', $data);
+        self::assertEquals('bar', $data['foo']);
+        self::assertTrue($data['__expires'] > time());
+    }
+
+    private function writingMiddleware(BraceApp $app, string $value = 'bar'): RequestHandlerInterface
+    {
+        return $this->fakeDelegate(
+            static function () use ($app, $value) {
+                $session = $app->get(SessionMiddleware::SESSION_ATTRIBUTE);
+                assert($session instanceof Session);
+                $session->set('foo', $value);
+
+                return new Response();
+            }
+        );
+    }
+
+    private function fakeDelegate(callable $callback): RequestHandlerInterface
+    {
+        $middleware = $this->createMock(RequestHandlerInterface::class);
+
+        $middleware
+            ->expects(self::once())
+            ->method('handle')
+            ->willReturnCallback($callback);
+
+        return $middleware;
     }
 
 }
