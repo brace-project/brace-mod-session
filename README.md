@@ -6,7 +6,7 @@
 
 # brace-mod-session
 
-Php Session
+Session middleware for Brace Core Applications
 
 ### Installation
 
