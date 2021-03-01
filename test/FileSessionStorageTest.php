@@ -34,8 +34,8 @@ class FileSessionStorageTest extends TestCase
     {
         $FileSessionStorage->write("foo", ['foo' => 'bar']);
         $FileSessionStorage->write("bar", ['bar' => 'foo']);
-        self::assertFileExists('../tmp/foo.json');
-        self::assertFileExists('../tmp/bar.json');
+        self::assertFileExists('/tmp/foo.json');
+        self::assertFileExists('/tmp/bar.json');
         return $FileSessionStorage;
     }
 
@@ -60,6 +60,16 @@ class FileSessionStorageTest extends TestCase
     public function testFileDoesntExistReturnNull(FileSessionStorage $FileSessionStorage): void
     {
         self::assertEquals(null, $FileSessionStorage->load("foobar"));
+    }
+
+    /**
+     * @depends testWriteData
+     * @param FileSessionStorage $FileSessionStorage
+     */
+    public function testDestroy(FileSessionStorage $FileSessionStorage): void
+    {
+        $FileSessionStorage->destroy("foo");
+        self::assertFileDoesNotExist("/tmp/foo.json");
     }
 
 }

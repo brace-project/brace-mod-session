@@ -2,6 +2,7 @@
 
 namespace Brace\Session\Storages;
 
+use Exception;
 use Phore\Core\Exception\NotFoundException;
 use Phore\ObjectStore\Driver\FileSystemObjectStoreDriver;
 use Phore\ObjectStore\ObjectStore;
@@ -30,5 +31,14 @@ class FileSessionStorage implements SessionStorageInterface
     public function write(string $sessionId, array $data): void
     {
         $this->objectStore->object($sessionId . ".json")->putJson($data);
+    }
+
+    /** {@inheritdoc} */
+    public function destroy(string $sessionId): void
+    {
+        try {
+            $this->objectStore->object($sessionId . ".json")->remove();
+        } catch (Exception) {
+        }
     }
 }

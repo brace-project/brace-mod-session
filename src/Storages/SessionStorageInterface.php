@@ -25,4 +25,12 @@ interface SessionStorageInterface
      * @param array $data
      */
     public function write(string $sessionId, array $data): void;
+
+    /**
+     * Destroy a session
+     *
+     * @param string $sessionId The session ID being destroyed.
+     * @return void
+     */
+    public function destroy(string $sessionId): void;
 }

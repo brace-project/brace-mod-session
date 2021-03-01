@@ -20,4 +20,10 @@ class RedisSessionStorage implements SessionStorageInterface
     {
         // TODO: Implement write() method.
     }
+
+    /** {@inheritdoc} */
+    public function destroy(string $sessionId): void
+    {
+        // TODO: Implement destroy() method.
+    }
 }
