@@ -87,9 +87,23 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionDataIsExpired(ReflectionMethod $isValidSession): void
+    public function testIsValidSessionDataIsExpiredTTLNot(ReflectionMethod $isValidSession): void
     {
-        self::assertFalse($isValidSession->invokeArgs($this->middleware, [['__expires' => time() - 1]]));
+        self::assertFalse(
+            $isValidSession->invokeArgs($this->middleware, [['__expires' => time() - 1, '__ttl' => time() + 10]])
+        );
+    }
+
+    /**
+     * @depends testIsValidSessionAndIsPrivateMethod
+     * @param ReflectionMethod $isValidSession
+     * @throws ReflectionException
+     */
+    public function testIsValidSessionTTLIsExpiredExpiresNot(ReflectionMethod $isValidSession): void
+    {
+        self::assertFalse(
+            $isValidSession->invokeArgs($this->middleware, [['__expires' => time() + 10, '__ttl' => time() - 1]])
+        );
     }
 
     /**

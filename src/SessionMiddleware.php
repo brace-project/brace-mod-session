@@ -20,7 +20,8 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
     public function __construct(
         private SessionStorageInterface $sessionStorage,
-        private int $ttl = 86400,
+        private int $ttl = 3600,
+        private int $expires = 86400
     ) {
     }
 
@@ -70,16 +71,20 @@ class SessionMiddleware extends BraceAbstractMiddleware
         return $response;
     }
 
-
     /**
      * Defines the Default Session Data
      *
      * @return int[]
      */
-    #[ArrayShape(['__expires' => "int"])] private function setUpDefaultSessionData(): array
+    #[ArrayShape([
+        '__ttl' => "int",
+        '__expires' => "int"
+    ])] private function setUpDefaultSessionData(): array
     {
-        //Todo: define some DefaultSessionData and Write test for this method
-        return ['__expires' => time() + $this->ttl]; //Todo: useful params? start time
+        return [
+            '__ttl' => time() + $this->ttl,
+            '__expires' => time() + $this->expires
+        ];
     }
 
     /**
@@ -93,11 +98,14 @@ class SessionMiddleware extends BraceAbstractMiddleware
         if ($sessionData === null || $sessionData === []) {
             return false;
         }
-        if (array_key_exists('__expires', $sessionData)
-            && $sessionData['__expires'] < time()) {
+        if (array_key_exists('__expires', $sessionData) &&
+            $sessionData['__expires'] < time()) {
             return false;
         }
-        // Todo: max ttl reached ?
+        if (array_key_exists('__ttl', $sessionData) &&
+            $sessionData['__ttl'] < time()) {
+            return false;
+        }
         return true;
     }
 
@@ -108,8 +116,6 @@ class SessionMiddleware extends BraceAbstractMiddleware
      */
     private function renewSessionData(array &$sessionData): void
     {
-        $sessionData['__expires'] = time() + $this->ttl;
+        $sessionData['__ttl'] = time() + $this->ttl;
     }
-
-
 }
