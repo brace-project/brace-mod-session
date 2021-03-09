@@ -78,9 +78,9 @@ class Session
     /**
      * Checks whether the session has changed its contents since its lifecycle start
      */
-    public function hasChanged(): bool
+    #[Pure] public function hasChanged(): bool
     {
-        return $this->sessionData !== $this->originalSessionData;
+        return array_diff($this->sessionData, $this->originalSessionData) !== [];
     }
 
     /**
@@ -91,8 +91,9 @@ class Session
         return !count($this->sessionData);
     }
 
-    public function jsonSerialize(): object
+    public function _getData(): array
     {
-        return (object)$this->sessionData;
+        return $this->sessionData;
     }
+
 }

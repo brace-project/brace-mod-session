@@ -7,6 +7,8 @@ use Brace\Session\Session;
 use Brace\Session\SessionMiddleware;
 use Brace\Session\Storages\FileSessionStorage;
 use Laminas\Diactoros\Response;
+use Phore\ObjectStore\Driver\FileSystemObjectStoreDriver;
+use Phore\ObjectStore\ObjectStore;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -22,7 +24,7 @@ class SessionMiddlewareTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         system('sudo rm -R /tmp/*');
-        self::$fileSessionStorage = new FileSessionStorage("/tmp");
+        self::$fileSessionStorage = new FileSessionStorage(new ObjectStore(new FileSystemObjectStoreDriver("/tmp")));
     }
 
     protected function setUp(): void
@@ -52,6 +54,23 @@ class SessionMiddlewareTest extends TestCase
     }
 
     /**
+     * Gets the private property of a class and sets its value
+     *
+     * @param $obj
+     * @param string $property
+     * @param $value
+     * @return void
+     * @throws ReflectionException
+     */
+    protected static function getChangeValue($obj, string $property, $value): void
+    {
+        $reflectionClass = new ReflectionClass($obj);
+        $reflectionMethod = $reflectionClass->getProperty($property);
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->setValue($obj, $value);
+    }
+
+    /**
      * @return ReflectionMethod
      * @throws ReflectionException
      */
@@ -67,9 +86,11 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionEmptySessionData(ReflectionMethod $isValidSession): void
+    public function testIsValidSessionSessionIdIsNull(ReflectionMethod $isValidSession): void
     {
-        self::assertFalse($isValidSession->invokeArgs($this->middleware, [[]]));
+        self::getChangeValue($this->middleware, 'sessionId', null);
+        self::getChangeValue($this->middleware, 'sessionData', []);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
     }
 
     /**
@@ -77,9 +98,11 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionArgumentIsNull(ReflectionMethod $isValidSession): void
+    public function testIsValidSessionArrayKeyDoesntExists(ReflectionMethod $isValidSession): void
     {
-        self::assertFalse($isValidSession->invokeArgs($this->middleware, [null]));
+        self::getChangeValue($this->middleware, 'sessionId', null);
+        self::getChangeValue($this->middleware, 'sessionData', ["foo" => "bar"]);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
     }
 
     /**
@@ -87,11 +110,79 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionDataIsExpiredTTLNot(ReflectionMethod $isValidSession): void
+    public function testIsValidSessionArrayKeyExistsButIsEmpty(ReflectionMethod $isValidSession): void
     {
-        self::assertFalse(
-            $isValidSession->invokeArgs($this->middleware, [['__expires' => time() - 1, '__ttl' => time() + 10]])
+        self::getChangeValue($this->middleware, 'sessionId', null);
+        self::getChangeValue($this->middleware, 'sessionData', ["sessionId" => '']);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
+    }
+
+    /**
+     * @depends testIsValidSessionAndIsPrivateMethod
+     * @param ReflectionMethod $isValidSession
+     * @throws ReflectionException
+     */
+    public function testIsValidSessionArrayKeyExistsButIsNull(ReflectionMethod $isValidSession): void
+    {
+        self::getChangeValue($this->middleware, 'sessionId', null);
+        self::getChangeValue($this->middleware, 'sessionData', ["sessionId" => null]);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
+    }
+
+    /**
+     * @depends testIsValidSessionAndIsPrivateMethod
+     * @param ReflectionMethod $isValidSession
+     * @throws ReflectionException
+     */
+    public function testIsValidSessionArrayKeyExistsButHashIsNotEqual(ReflectionMethod $isValidSession): void
+    {
+        self::getChangeValue($this->middleware, 'sessionId', "foo");
+        self::getChangeValue($this->middleware, 'sessionData', ["sessionId" => "test"]);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
+    }
+
+    /**
+     * @depends testIsValidSessionAndIsPrivateMethod
+     * @param ReflectionMethod $isValidSession
+     * @throws ReflectionException
+     */
+    public function testIsValidSessionIdExistsButDataIsNull(ReflectionMethod $isValidSession): void
+    {
+        self::getChangeValue($this->middleware, 'sessionId', "foo");
+        self::getChangeValue($this->middleware, 'sessionData', null);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
+    }
+
+    /**
+     * @depends testIsValidSessionAndIsPrivateMethod
+     * @param ReflectionMethod $isValidSession
+     * @throws ReflectionException
+     */
+    public function testIsValidSessionIdExistsButDataIsEmpty(ReflectionMethod $isValidSession): void
+    {
+        self::getChangeValue($this->middleware, 'sessionId', "foo");
+        self::getChangeValue($this->middleware, 'sessionData', []);
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
+    }
+
+    /**
+     * @depends testIsValidSessionAndIsPrivateMethod
+     * @param ReflectionMethod $isValidSession
+     * @throws ReflectionException
+     */
+    public function testIsValidSessionDataIsExpiredTtlNot(ReflectionMethod $isValidSession): void
+    {
+        self::getChangeValue($this->middleware, 'sessionId', "foo");
+        self::getChangeValue(
+            $this->middleware,
+            'sessionData',
+            [
+                'sessionId' => md5('foo'),
+                '__expires' => time() - 1,
+                '__ttl' => time() + 10
+            ]
         );
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
     }
 
     /**
@@ -99,11 +190,19 @@ class SessionMiddlewareTest extends TestCase
      * @param ReflectionMethod $isValidSession
      * @throws ReflectionException
      */
-    public function testIsValidSessionTTLIsExpiredExpiresNot(ReflectionMethod $isValidSession): void
+    public function testIsValidSessionTtlIsExpiredExpiresNot(ReflectionMethod $isValidSession): void
     {
-        self::assertFalse(
-            $isValidSession->invokeArgs($this->middleware, [['__expires' => time() + 10, '__ttl' => time() - 1]])
+        self::getChangeValue($this->middleware, 'sessionId', "foo");
+        self::getChangeValue(
+            $this->middleware,
+            'sessionData',
+            [
+                'sessionId' => md5('foo'),
+                '__expires' => time() + 10,
+                '__ttl' => time() - 1
+            ]
         );
+        self::assertFalse($isValidSession->invokeArgs($this->middleware, []));
     }
 
     /**
@@ -113,7 +212,17 @@ class SessionMiddlewareTest extends TestCase
      */
     public function testIsValidSessionDataIsValid(ReflectionMethod $isValidSession): void
     {
-        self::assertTrue($isValidSession->invokeArgs($this->middleware, [['__expires' => time() + 10]]));
+        self::getChangeValue($this->middleware, 'sessionId', "foo");
+        self::getChangeValue(
+            $this->middleware,
+            'sessionData',
+            [
+                'sessionId' => md5('foo'),
+                '__expires' => time() + 10,
+                '__ttl' => time() +10
+            ]
+        );
+        self::assertTrue($isValidSession->invokeArgs($this->middleware, []));
     }
 
     public function testSessionMiddleware(): void
@@ -128,16 +237,19 @@ class SessionMiddlewareTest extends TestCase
         $cookies = $response->getHeader('Set-Cookie');
         $explode = explode(';', $cookies[0]);
         $leftside = explode('=', $explode[0]);
-        $rightside = explode('=', trim($explode[1]));
+        $rightside = explode('=', trim($explode[2]));
         $sessId = $leftside[1];
         self::assertEquals('SESSID', $leftside[0]);
         self::assertEquals('path', $rightside[0]);
         self::assertEquals('session.cookie_path', $rightside[1]);
-        $data = self::$fileSessionStorage->load($sessId);
+        $data = self::$fileSessionStorage->load(substr($sessId, 0, 32));
         self::assertArrayHasKey('foo', $data);
         self::assertArrayHasKey('__expires', $data);
         self::assertEquals('bar', $data['foo']);
         self::assertTrue($data['__expires'] > time());
+
+        $this->middleware = new SessionMiddleware(self::$fileSessionStorage);
+        $this->middleware->_setApp($app);
 
         //send Request with different SessID thats not saved
         $response = $this->middleware->process(
@@ -153,7 +265,7 @@ class SessionMiddlewareTest extends TestCase
         self::assertEquals('SESSID', $leftside[0]);
         self::assertEquals('path', $rightside[0]);
         self::assertEquals('session.cookie_path', $rightside[1]);
-        $data = self::$fileSessionStorage->load($sessId);
+        $data = self::$fileSessionStorage->load(substr($sessId, 0, 32));
         self::assertArrayHasKey('foo', $data);
         self::assertArrayHasKey('__expires', $data);
         self::assertEquals('bar', $data['foo']);
@@ -161,6 +273,9 @@ class SessionMiddlewareTest extends TestCase
 
         //send Request with same Cookie
         //change value of 'foo'
+        $this->middleware = new SessionMiddleware(self::$fileSessionStorage);
+        $this->middleware->_setApp($app);
+
         $response = $this->middleware->process(
             $this->writingServerRequest($sessId),
             $this->writingMiddleware($app, 'foobar')
@@ -170,7 +285,7 @@ class SessionMiddlewareTest extends TestCase
         $leftside = explode('=', $explode[0]);
         $sessIdSecondRequest = $leftside[1];
         self::assertEquals($sessId, $sessIdSecondRequest);
-        $data = self::$fileSessionStorage->load($sessId);
+        $data = self::$fileSessionStorage->load(substr($sessId, 0, 32));
         self::assertArrayHasKey('foo', $data);
         self::assertArrayHasKey('__expires', $data);
         self::assertEquals('foobar', $data['foo']);

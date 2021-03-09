@@ -4,6 +4,8 @@ namespace Test;
 
 use Brace\Session\Storages\FileSessionStorage;
 use Brace\Session\Storages\SessionStorageInterface;
+use Phore\ObjectStore\Driver\FileSystemObjectStoreDriver;
+use Phore\ObjectStore\ObjectStore;
 use PHPUnit\Framework\TestCase;
 
 class FileSessionStorageTest extends TestCase
@@ -20,7 +22,7 @@ class FileSessionStorageTest extends TestCase
 
     public function testImplementsSessionStorageInterface(): FileSessionStorage
     {
-        $FileSessionStorage = new FileSessionStorage("/tmp");
+        $FileSessionStorage = new FileSessionStorage(new ObjectStore(new FileSystemObjectStoreDriver("/tmp")));
         self::assertInstanceOf(SessionStorageInterface::class, $FileSessionStorage);
         return $FileSessionStorage;
     }

@@ -15,12 +15,15 @@
   ],
   "require": {
     "phore/filesystem": "dev-master",
-    "phore/objectstore": "dev-master",
     "brace/core": "dev-main"
   },
   "require-dev": {
     "phpunit/phpunit": "*",
-    "laminas/laminas-diactoros": "2.6.x-dev"
+    "laminas/laminas-diactoros": "2.6.x-dev",
+    "phore/objectstore": "dev-master"
+  },
+  "suggest": {
+    "phore/objectstore": "if u want to use objectstore"
   },
   "autoload": {
     "psr-4": {
