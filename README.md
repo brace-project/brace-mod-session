@@ -11,7 +11,7 @@ Session middleware for Brace Core Applications
 ### Installation
 
 ```sh
-composer require brace/mod-session
+composer require lack/mfdk
 ```
 
 ### Usage
