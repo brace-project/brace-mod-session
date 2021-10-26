@@ -45,9 +45,6 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
         $response = $handler->handle($request);
         $session = $this->app->get(self::SESSION_ATTRIBUTE);
-        if (true) {
-            $this->sessionStorage->write($sessionId, $sessionData);
-        }
 
         return $this->handleSessionResponse($response);
     }
