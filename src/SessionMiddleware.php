@@ -25,6 +25,8 @@ class SessionMiddleware extends BraceAbstractMiddleware
     ) {
     }
 
+
+
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $responseCookies = [];
@@ -55,7 +57,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
         $response = $handler->handle($request);
         $session = $this->app->get(self::SESSION_ATTRIBUTE);
-        if ($session->hasChanged() && !$session->isEmpty()) {
+        if (true) {
             $this->sessionStorage->write($sessionId, $sessionData);
         }
 

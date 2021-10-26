@@ -45,7 +45,7 @@ class Session
      */
     public function get(string $key): mixed
     {
-        return $this->sessionData[$key];
+        return $this->sessionData[$key] ?? null;
     }
 
     /**
