@@ -3,18 +3,20 @@
 namespace Brace\Session\Storages;
 
 use Exception;
+use InvalidArgumentException;
 use Phore\Core\Exception\NotFoundException;
-use Phore\ObjectStore\Driver\FileSystemObjectStoreDriver;
 use Phore\ObjectStore\ObjectStore;
 
 class FileSessionStorage implements SessionStorageInterface
 {
     private ObjectStore $objectStore;
 
-    /** {@inheritdoc} */
-    public function __construct(string $connection)
+    public function __construct(ObjectStore $objectStore)
     {
-        $this->objectStore = new ObjectStore(new FileSystemObjectStoreDriver($connection));
+        if(!class_exists(ObjectStore::class)){
+            throw new InvalidArgumentException('ObjectStore package missing please install Phore\ObjectStore');
+        }
+        $this->objectStore = $objectStore;
     }
 
     /** {@inheritdoc} */

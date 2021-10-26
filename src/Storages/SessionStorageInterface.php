@@ -4,11 +4,6 @@ namespace Brace\Session\Storages;
 
 interface SessionStorageInterface
 {
-    /**
-     * SessionStorageInterface constructor.
-     * @param string $connection
-     */
-    public function __construct(string $connection);
 
     /**
      * loads the $data written under the given $sessionID or returns null if no data exists
