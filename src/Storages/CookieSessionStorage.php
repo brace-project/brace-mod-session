@@ -19,7 +19,7 @@ class CookieSessionStorage implements SessionStorageInterface
     {
         if ( ! isset($_COOKIE[$this->cookieName]))
             return null;
-        $data = json_decode($_COOKIE[$this->cookieName]);
+        $data = json_decode($_COOKIE[$this->cookieName], true);
         if ($data["sess_id"] !== $sessionId)
             return null;
         return $data["data"];
