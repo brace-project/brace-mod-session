@@ -15,38 +15,31 @@ use Psr\Http\Server\RequestHandlerInterface;
 class SessionMiddleware extends BraceAbstractMiddleware
 {
 
-    public const COOKIE_NAME = 'SESSID';
-    public const COOKIE_PATH = 'session.cookie_path';
-    public const SESSION_ATTRIBUTE = 'session';
-    private array $responseCookies = [];
-    private ?Session $session = null;
-    private ?string $sessionId = null;
-    private ?array $sessionData = null;
+    public const SESSION_DI_NAME = 'session';
 
     public function __construct(
         private SessionStorageInterface $sessionStorage,
         private int $ttl = 3600,
-        private int $expires = 86400
+        private int $expires = 86400,
+        private string $cookieName = "X-SESS",
+        private string $cookiePath = "/"
     ) {
     }
 
 
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function _loadSession(ServerRequestInterface $request, &$sessionDataRef, &$sessionId) : Session|null
     {
-        $this->app->define(
-            self::SESSION_ATTRIBUTE,
-            new DiService(
-                function () use ($request) {
-                    return $this->createSession($this, $request)();
-                }
-            )
-        );
+        $sessionId = $request->getCookieParams()[$this->cookieName] ?? null;
+        if ($sessionId === null)
+            return null;
 
-        $response = $handler->handle($request);
-        $session = $this->app->get(self::SESSION_ATTRIBUTE);
+        $sessionDataRef = $this->sessionStorage->load(substr($sessionId, 0, 32));
+        if ($sessionDataRef === null)
+            return null;
 
-        return $this->handleSessionResponse($response);
+        if ( ! $this->isValidSessionData($sessionDataRef, $sessionId))
+            return null;
+        return new Session($sessionDataRef["data"], $sessionId);
     }
 
     /**
@@ -56,99 +49,85 @@ class SessionMiddleware extends BraceAbstractMiddleware
      * @param ServerRequestInterface $request
      * @return callable
      */
-    public function createSession(SessionMiddleware $that, ServerRequestInterface $request): callable
+    public function _createSession(string $sessionId, &$sessionDataRef): Session
     {
-        return static function () use ($that, $request) {
-            $requestCookies = $request->getCookieParams();
-            $that->sessionId = $requestCookies[self::COOKIE_NAME] ?? null;
-            $that->sessionData = $that->sessionStorage->load(substr($that->sessionId, 0, 32));
-
-            if (!$that->isValidSession()) {
-                $that->sessionId = phore_random_str(64);
-                $that->sessionData = $that->setUpDefaultSessionData();
-            } else {
-                $that->renewSessionData();
-            }
-            $that->responseCookies[self::COOKIE_NAME] = $that->sessionId;
-            $that->session = new Session($that->sessionData, $that->sessionData, $that->sessionId);
-            return $that->session;
-        };
-    }
-
-    /**
-     * Defines the Default Session Data
-     *
-     * @return array
-     */
-    #[ArrayShape([
-        'sessionId' => "string",
-        '__ttl' => "int",
-        '__expires' => "int"
-    ])] private function setUpDefaultSessionData(): array
-    {
-        return [
-            'sessionId' => md5($this->sessionId),
-            '__ttl' => time() + $this->ttl,
-            '__expires' => time() + $this->expires
+        $sessionDataRef = [
+            "__sid_hash" => sha1($sessionId),
+            "__ttl" => time() + $this->ttl,
+            "__expires" => time() + $this->expires,
+            "data" => []
         ];
+        return new Session($sessionDataRef["data"], $sessionId);
     }
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        $newSessionId = null;
+
+        $loadedSessionId = null;
+        $sessionDataRef = null;
+
+        $this->app->define(
+            self::SESSION_DI_NAME,
+            new DiService(
+                function () use ($request, &$newSessionId, &$sessionDataRef, &$loadedSessionId) {
+                    $session = $this->_loadSession($request,$sessionDataRef, $loadedSessionId);
+
+                    if ($session === null) {
+                        $newSessionId = phore_random_str(64);
+                        return $this->_createSession($newSessionId, $sessionDataRef);
+                    } else {
+                        return $session;
+                    }
+
+                }
+            )
+        );
+
+        // Process next middleware
+        $response = $handler->handle($request);
+
+        // Attach new SessionId Cookie (if needed)
+        if ($newSessionId !== null) {
+            $response = Cookie::setCookie(
+                $response,
+                $this->cookieName,
+                $newSessionId,
+                0,
+                $this->cookiePath
+            );
+            $this->sessionStorage->write(substr($newSessionId, 0, 32), $sessionDataRef);
+        }
+
+        // Check for updated session data
+        if ($loadedSessionId !== null) {
+            if ($this->app->get(self::SESSION_DI_NAME, Session::class)->hasChanged())
+                $this->sessionStorage->write(substr($newSessionId, 0, 32), $sessionDataRef);
+        }
+
+        return $response;
+    }
+
+
+
 
     /**
      * checks whether a given $sessionId is valid or not
      *
      * @return bool
      */
-    private function isValidSession(): bool
+    private function isValidSessionData(array $sessionData, string $sessionId): bool
     {
-        if ($this->sessionId === null) {
+        if ( ! isset($sessionData["__sid_hash"]) || $sessionData["__sid_hash"] !== sha1($sessionId)) {
             return false;
         }
-        if ($this->sessionData === null || $this->sessionData === []) {
+        if ($sessionData['__expires'] < time()) {
             return false;
         }
-        if (!array_key_exists('sessionId', $this->sessionData) ||
-            empty(trim($this->sessionData['sessionId'])) ||
-            md5($this->sessionId) !== $this->sessionData['sessionId']) {
-            return false;
-        }
-        if (!array_key_exists('__expires', $this->sessionData) ||
-            $this->sessionData['__expires'] < time()) {
-            return false;
-        }
-        if (!array_key_exists('__ttl', $this->sessionData) ||
-            $this->sessionData['__ttl'] < time()) {
+        if ($sessionData['__ttl'] < time()) {
             return false;
         }
         return true;
     }
 
-    /**
-     * Renews the session expiration time
-     *
-     */
-    private function renewSessionData(): void
-    {
-        $this->sessionData['__ttl'] = time() + $this->ttl;
-    }
-
-    /**
-     * handles which Response is send and if Cookies are set or not
-     *
-     * @param $response
-     * @return ResponseInterface
-     */
-    private function handleSessionResponse($response): ResponseInterface
-    {
-        if ($this->session !== null && $this->session->hasChanged()) {
-            $this->sessionStorage->write(substr($this->sessionId, 0, 32), $this->sessionData);
-            return Cookie::setCookie(
-                $response,
-                self::COOKIE_NAME,
-                $this->responseCookies[self::COOKIE_NAME],
-                $this->expires,
-                self::COOKIE_PATH
-            );
-        }
-        return $response;
-    }
 }

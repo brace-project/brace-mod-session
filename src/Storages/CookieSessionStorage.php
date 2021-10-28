@@ -6,6 +6,7 @@ class CookieSessionStorage implements SessionStorageInterface
 {
 
     public function __construct(
+        private $secretKey,
         private $cookieName = "X-SESS-D"
     ){}
 
@@ -19,7 +20,16 @@ class CookieSessionStorage implements SessionStorageInterface
     {
         if ( ! isset($_COOKIE[$this->cookieName]))
             return null;
-        $data = json_decode($_COOKIE[$this->cookieName], true);
+
+        [$nonce, $message] = explode(".", $_COOKIE[$this->cookieName], 2);
+
+        $nonce = base64_decode($nonce); $message = base64_decode($message);
+
+        $data = sodium_crypto_secretbox_open($message, $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));
+        if ($data === false || $data === null)
+            return null;
+
+        $data = json_decode($data, true);
         if ($data["sess_id"] !== $sessionId)
             return null;
         return $data["data"];
@@ -37,7 +47,11 @@ class CookieSessionStorage implements SessionStorageInterface
             "sess_id" => $sessionId,
             "data" => $data
         ];
-        setcookie($this->cookieName, json_encode($data));
+
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $encryped = sodium_crypto_secretbox(json_encode($data), $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));
+
+        setcookie($this->cookieName, base64_encode($nonce) . "." . base64_encode($encryped));
     }
 
     /**

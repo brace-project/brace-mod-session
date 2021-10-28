@@ -7,12 +7,14 @@ use JetBrains\PhpStorm\Pure;
 class Session
 {
 
+    private array $originalSessionData;
 
     public function __construct(
         private array &$sessionData,
-        private array $originalSessionData,
         private string $sessionId
-    ) {
+    )
+    {
+        $this->originalSessionData = $this->sessionData;
     }
 
     /**
@@ -95,6 +97,6 @@ class Session
     {
         return $this->sessionData;
     }
-    
+
 }
 
