@@ -25,7 +25,11 @@ class CookieSessionStorage implements SessionStorageInterface
 
         $nonce = base64_decode($nonce); $message = base64_decode($message);
 
-        $data = sodium_crypto_secretbox_open($message, $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));
+        try {
+            $data = sodium_crypto_secretbox_open($message, $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));
+        } catch (\Exception $e) {
+            return null;
+        }
         if ($data === false || $data === null)
             return null;
 
