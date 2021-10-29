@@ -33,12 +33,14 @@ class CookieSessionStorage implements SessionStorageInterface
         } catch (\Exception $e) {
             return null;
         }
+
         if ($data === false || $data === null)
             return null;
 
         $data = json_decode($data, true);
-        if ($data["sess_id"] !== $sessionId)
+        if ($data["sess_id"] !== $sessionId) {
             return null;
+        }
         return $data["data"];
     }
 

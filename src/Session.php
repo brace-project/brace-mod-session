@@ -82,7 +82,10 @@ class Session
      */
     #[Pure] public function hasChanged(): bool
     {
-        return array_diff($this->sessionData, $this->originalSessionData) !== [];
+        //print_r ($this->sessionData); print_r($this->originalSessionData);
+        //print_r(array_diff($this->sessionData, $this->originalSessionData));
+
+        return $this->sessionData !== $this->originalSessionData;
     }
 
     /**

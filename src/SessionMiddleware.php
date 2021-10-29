@@ -34,11 +34,13 @@ class SessionMiddleware extends BraceAbstractMiddleware
             return null;
 
         $sessionDataRef = $this->sessionStorage->load(substr($sessionId, 0, 32));
-        if ($sessionDataRef === null)
+        if ($sessionDataRef === null) {
             return null;
+        }
 
-        if ( ! $this->isValidSessionData($sessionDataRef, $sessionId))
+        if ( ! $this->isValidSessionData($sessionDataRef, $sessionId)) {
             return null;
+        }
         return new Session($sessionDataRef["data"], $sessionId);
     }
 
@@ -96,13 +98,17 @@ class SessionMiddleware extends BraceAbstractMiddleware
                 0,
                 $this->cookiePath
             );
-            $this->sessionStorage->write(substr($newSessionId, 0, 32), $sessionDataRef);
+
+            $this->sessionStorage->write(substr($newSessionId, 0, 32), (array)$sessionDataRef);
+            file_put_contents("php://stderr", "wurst");
+            return $response;
         }
 
         // Check for updated session data
         if ($loadedSessionId !== null) {
-            if ($this->app->get(self::SESSION_DI_NAME, Session::class)->hasChanged())
-                $this->sessionStorage->write(substr($newSessionId, 0, 32), $sessionDataRef);
+            if ($this->app->get(self::SESSION_DI_NAME, Session::class)->hasChanged()) {
+                $this->sessionStorage->write(substr($newSessionId, 0, 32), (array)$sessionDataRef);
+            }
         }
 
         return $response;
