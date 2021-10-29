@@ -11,21 +11,21 @@ class SessionTest extends TestCase
     public function testImplementsSessionInterface(): void
     {
         $sessionData = [];
-        $session = new Session($sessionData, $sessionData, "test");
+        $session = new Session($sessionData, "test");
         self::assertInstanceOf(Session::class, $session);
     }
 
     public function testIsNotChangedAtInstantiation(): void
     {
         $sessionData = [];
-        $session = new Session($sessionData, $sessionData, "test");
+        $session = new Session($sessionData, "test");
         self::assertFalse($session->hasChanged());
     }
 
     public function testSettingDataInSessionMakesItAccessible(): Session
     {
         $sessionData = [];
-        $session = new Session($sessionData, $sessionData, "test");
+        $session = new Session($sessionData, "test");
         self::assertFalse($session->has('foo'));
         $session->set('foo', 'bar');
         self::assertTrue($session->has('foo'));
@@ -68,7 +68,7 @@ class SessionTest extends TestCase
             'baz' => 'bat',
         ];
         $testData = $sessionData;
-        $session = new Session($sessionData, $testData, "test");
+        $session = new Session($sessionData, "test");
         self::assertSame($testData, $session->toArray());
 
         $session->clear();
