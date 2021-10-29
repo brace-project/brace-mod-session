@@ -8,7 +8,10 @@ class CookieSessionStorage implements SessionStorageInterface
     public function __construct(
         private $secretKey,
         private $cookieName = "X-SESS-D"
-    ){}
+    ){
+        if (strlen($this->secretKey) < 16)
+            throw new \UnexpectedValueException("Encryption key needs at least 24 bytes");
+    }
 
     /**
      * loads the $data written under the given $sessionID or returns null if no data exists
