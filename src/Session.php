@@ -101,5 +101,17 @@ class Session
         return $this->sessionData;
     }
 
+    private $isDestroyed = false;
+
+    public function destroy()
+    {
+        $this->isDestroyed = true;
+    }
+
+    public function isDestroyed() : bool
+    {
+        return $this->isDestroyed;
+    }
+    
 }
 

@@ -41,6 +41,7 @@ class CookieSessionStorage implements SessionStorageInterface
         if ($data["sess_id"] !== $sessionId) {
             return null;
         }
+        out("loaded", $data);
         return $data["data"];
     }
 
@@ -56,6 +57,8 @@ class CookieSessionStorage implements SessionStorageInterface
             "sess_id" => $sessionId,
             "data" => $data
         ];
+
+        out("Writing", $data);
 
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $encryped = sodium_crypto_secretbox(json_encode($data), $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));

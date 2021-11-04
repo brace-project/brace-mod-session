@@ -69,17 +69,20 @@ class SessionMiddleware extends BraceAbstractMiddleware
         $loadedSessionId = null;
         $sessionDataRef = null;
 
+        $sessionObj = null;
+
         $this->app->define(
             self::SESSION_DI_NAME,
             new DiService(
-                function () use ($request, &$newSessionId, &$sessionDataRef, &$loadedSessionId) {
-                    $session = $this->_loadSession($request,$sessionDataRef, $loadedSessionId);
+                function () use ($request, &$newSessionId, &$sessionDataRef, &$loadedSessionId, &$sessionObj) {
+                    $sessionObj = $this->_loadSession($request,$sessionDataRef, $loadedSessionId);
 
-                    if ($session === null) {
+                    if ($sessionObj === null) {
                         $newSessionId = phore_random_str(64);
-                        return $this->_createSession($newSessionId, $sessionDataRef);
+                        $sessionObj = $this->_createSession($newSessionId, $sessionDataRef);
+                        return $sessionObj;
                     } else {
-                        return $session;
+                        return $sessionObj;
                     }
 
                 }
@@ -88,6 +91,17 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
         // Process next middleware
         $response = $handler->handle($request);
+
+
+        if ($sessionObj !== null && $sessionObj->isDestroyed()) {
+            return Cookie::setCookie(
+                $response,
+                $this->cookieName,
+                null,
+                0,
+                $this->cookiePath
+            );
+        }
 
         // Attach new SessionId Cookie (if needed)
         if ($newSessionId !== null) {
@@ -100,14 +114,13 @@ class SessionMiddleware extends BraceAbstractMiddleware
             );
 
             $this->sessionStorage->write(substr($newSessionId, 0, 32), (array)$sessionDataRef);
-            file_put_contents("php://stderr", "wurst");
             return $response;
         }
 
         // Check for updated session data
         if ($loadedSessionId !== null) {
             if ($this->app->get(self::SESSION_DI_NAME, Session::class)->hasChanged()) {
-                $this->sessionStorage->write(substr($newSessionId, 0, 32), (array)$sessionDataRef);
+                $this->sessionStorage->write(substr($loadedSessionId, 0, 32), (array)$sessionDataRef);
             }
         }
 
