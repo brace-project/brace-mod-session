@@ -63,7 +63,7 @@ class CookieSessionStorage implements SessionStorageInterface
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $encryped = sodium_crypto_secretbox(json_encode($data), $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));
 
-        setcookie($this->cookieName, base64_encode($nonce) . "." . base64_encode($encryped));
+        setcookie($this->cookieName, base64_encode($nonce) . "." . base64_encode($encryped), time() + 3600 * 24, "/");
     }
 
     /**

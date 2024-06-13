@@ -42,12 +42,30 @@ class Session
     /**
      * Retrieve a value from the session.
      *
+     * @template T
      * @param string $key
-     * @return mixed
+     * @param class-string<T>|null $cast
+     * @return T
      */
-    public function get(string $key): mixed
+    public function get(string $key, string $cast = null, bool $silentFail=false): mixed
     {
-        return $this->sessionData[$key] ?? null;
+        $val = $this->sessionData[$key] ?? null;
+
+
+        if ($cast !== null) {
+            try {
+
+                if ($val === null)
+                    throw new \InvalidArgumentException("Value of session key '$key' is null");
+                return phore_hydrate($val, $cast);
+            } catch (\Exception $e) {
+                if ($silentFail)
+                    return null;
+                throw new \InvalidArgumentException("Cannot cast session value '$key' to $cast: " . $e->getMessage(), 0, $e);
+            }
+        }
+
+        return $val;
     }
 
     /**
@@ -112,6 +130,6 @@ class Session
     {
         return $this->isDestroyed;
     }
-    
+
 }
 

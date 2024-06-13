@@ -22,9 +22,9 @@ class SessionMiddleware extends BraceAbstractMiddleware
         private int $ttl = 3600,
         private int $expires = 86400,
         private string $cookieName = "X-SESS",
-        private ?string $cookiePath = null
+        private ?string $cookiePath = "/"
     ) {
-        
+
     }
 
 
@@ -65,7 +65,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        
+
         if ($this->cookiePath === null) {
             if ($this->app->has("router")) {
                 $this->cookiePath = $this->app->router->getRoutePrefix();
@@ -73,7 +73,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
                 $this->cookiePath = "/";
             }
         }
-        
+
         $newSessionId = null;
 
         $loadedSessionId = null;
@@ -81,10 +81,10 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
         $sessionObj = null;
 
-        
-        
-        
-        
+
+
+
+
         $this->app->define(
             self::SESSION_DI_NAME,
             new DiService(
