@@ -81,6 +81,10 @@ class SessionMiddleware extends BraceAbstractMiddleware
 
         $sessionObj = null;
 
+        
+        
+        
+        
         $this->app->define(
             self::SESSION_DI_NAME,
             new DiService(
