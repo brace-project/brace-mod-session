@@ -115,6 +115,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
                 null,
                 null,
                 $this->cookiePath,
+                secure: true,
                 sameSite: $this->sameSite
             );
         }
@@ -127,6 +128,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
                 $newSessionId,
                 0,
                 $this->cookiePath,
+                secure: true,
                 sameSite: $this->sameSite
             );
 

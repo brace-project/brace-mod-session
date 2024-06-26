@@ -66,7 +66,8 @@ class CookieSessionStorage implements SessionStorageInterface
 
         $cookieOptions = [
             'expires' => time() + 3600 * 24, // 1 day
-            'path' => '/',
+            'path' => '/',            
+            'httponly' => true,
             'samesite' => $this->sameSite // Could be 'None', 'Lax', or 'Strict', depending on your needs
         ];
 
