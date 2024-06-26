@@ -22,7 +22,8 @@ class SessionMiddleware extends BraceAbstractMiddleware
         private int $ttl = 3600,
         private int $expires = 86400,
         private string $cookieName = "X-SESS",
-        private ?string $cookiePath = "/"
+        private ?string $cookiePath = "/",
+        private ?string $sameSite = "Strict"
     ) {
 
     }
