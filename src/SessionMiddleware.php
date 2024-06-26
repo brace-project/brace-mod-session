@@ -23,7 +23,7 @@ class SessionMiddleware extends BraceAbstractMiddleware
         private int $expires = 86400,
         private string $cookieName = "X-SESS",
         private ?string $cookiePath = "/",
-        private ?string $sameSite = "Strict"
+        private ?string $sameSite = "None"
     ) {
 
     }
@@ -113,8 +113,9 @@ class SessionMiddleware extends BraceAbstractMiddleware
                 $response,
                 $this->cookieName,
                 null,
-                0,
-                $this->cookiePath
+                null,
+                $this->cookiePath,
+                sameSite: $this->sameSite
             );
         }
 
@@ -125,7 +126,8 @@ class SessionMiddleware extends BraceAbstractMiddleware
                 $this->cookieName,
                 $newSessionId,
                 0,
-                $this->cookiePath
+                $this->cookiePath,
+                sameSite: $this->sameSite
             );
 
             $this->sessionStorage->write(substr($newSessionId, 0, 32), (array)$sessionDataRef);
