@@ -13,6 +13,8 @@ class CookieSessionStorage implements SessionStorageInterface
          */
         private $sameSite = "Lax"
     ){
+        if ( ! function_exists("sodium_crypto_secretbox_open"))
+            throw new \InvalidArgumentException("Sodium extension not available");
         if (strlen($this->secretKey) < 16)
             throw new \UnexpectedValueException("Encryption key needs at least 24 bytes");
     }
@@ -61,7 +63,7 @@ class CookieSessionStorage implements SessionStorageInterface
             "data" => $data
         ];
 
-        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $nonce = random_bytes(\SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $encrypted = sodium_crypto_secretbox(json_encode($data), $nonce, substr(sodium_crypto_generichash($this->secretKey), 0, 32));
 
         $cookieOptions = [
