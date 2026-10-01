@@ -4,12 +4,12 @@ on: [push]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Kickstart
-        run: "sudo curl -o /usr/bin/kickstart 'https://raw.githubusercontent.com/nfra-project/nfra-kickstart/master/dist/kickstart.sh' && sudo chmod +x /usr/bin/kickstart"
+      - name: Install dependencies
+        run: composer update --no-interaction --prefer-dist --prefer-stable
 
-      - name: Build Kickstart Container And Run Test
-        run: "kickstart :test"
+      - name: Run tests
+        run: vendor/bin/phpunit --testdox

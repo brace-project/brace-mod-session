@@ -13,10 +13,10 @@ To install the project and run the tests, you need to clone it first:
 $ git clone git@github.com:brace-project/brace-mod-session.git
 ```
 
-You will then need to install [kickstart](http://nfra.infracamp.org/) to run the test:
+Install the development dependencies with Composer (PHP 8.3):
 
 ```sh
-$ kickstart
+$ composer update --prefer-stable
 ```
 
 ## Testing
@@ -25,10 +25,10 @@ The PHPUnit version to be used is the one installed as a dev- dependency via com
 
 ```sh
 -> without Coverage Report:
-$ kick test 
+$ vendor/bin/phpunit --testdox
 
 -> with Coverage Report:
-$ kick testCoverage
+$ XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text --testdox
 ```
 
 Accepted coverage for new contributions is 80%. Any contribution not satisfying this requirement

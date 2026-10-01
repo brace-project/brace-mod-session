@@ -18,8 +18,8 @@
     "brace/core": "dev-main"
   },
   "require-dev": {
-    "phpunit/phpunit": "*",
-    "laminas/laminas-diactoros": "2.6.x-dev",
+    "phpunit/phpunit": "^9.6",
+    "laminas/laminas-diactoros": "^2.26",
     "phore/objectstore": "dev-master"
   },
   "suggest": {

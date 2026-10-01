@@ -19,18 +19,12 @@ class SessionMiddlewareTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        system('sudo rm -R /tmp/*');
         self::$fileSessionStorage = new FileSessionStorage(new ObjectStore(new FileSystemObjectStoreDriver("/tmp")));
     }
 
     protected function setUp(): void
     {
         $this->middleware = new SessionMiddleware(self::$fileSessionStorage);
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        system('sudo rm -R /tmp/*');
     }
 
     /**

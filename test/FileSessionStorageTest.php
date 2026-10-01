@@ -10,19 +10,25 @@ use PHPUnit\Framework\TestCase;
 
 class FileSessionStorageTest extends TestCase
 {
+    private static string $directory;
+
     public static function setUpBeforeClass(): void
     {
-        system('sudo rm -R /tmp/*');
+        self::$directory = sys_get_temp_dir() . '/brace-mod-session-' . bin2hex(random_bytes(8));
+        mkdir(self::$directory);
     }
 
     public static function tearDownAfterClass(): void
     {
-        system('sudo rm -R /tmp/*');
+        foreach (glob(self::$directory . '/*.json') as $file) {
+            unlink($file);
+        }
+        rmdir(self::$directory);
     }
 
     public function testImplementsSessionStorageInterface(): FileSessionStorage
     {
-        $FileSessionStorage = new FileSessionStorage(new ObjectStore(new FileSystemObjectStoreDriver("/tmp")));
+        $FileSessionStorage = new FileSessionStorage(new ObjectStore(new FileSystemObjectStoreDriver(self::$directory)));
         self::assertInstanceOf(SessionStorageInterface::class, $FileSessionStorage);
         return $FileSessionStorage;
     }
@@ -36,8 +42,8 @@ class FileSessionStorageTest extends TestCase
     {
         $FileSessionStorage->write("foo", ['foo' => 'bar']);
         $FileSessionStorage->write("bar", ['bar' => 'foo']);
-        self::assertFileExists('/tmp/foo.json');
-        self::assertFileExists('/tmp/bar.json');
+        self::assertFileExists(self::$directory . '/foo.json');
+        self::assertFileExists(self::$directory . '/bar.json');
         return $FileSessionStorage;
     }
 
@@ -71,7 +77,7 @@ class FileSessionStorageTest extends TestCase
     public function testDestroy(FileSessionStorage $FileSessionStorage): void
     {
         $FileSessionStorage->destroy("foo");
-        self::assertFileDoesNotExist("/tmp/foo.json");
+        self::assertFileDoesNotExist(self::$directory . '/foo.json');
     }
 
 }
