@@ -14,7 +14,7 @@
     }
   ],
   "require": {
-    "phore/filesystem": "dev-master",
+    "phore/filesystem": "*",
     "brace/core": "dev-main"
   },
   "require-dev": {
