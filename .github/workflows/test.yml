@@ -6,10 +6,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Install Kickstart
-        run: "sudo curl -o /usr/bin/kickstart 'https://raw.githubusercontent.com/nfra-project/nfra-kickstart/master/dist/kickstart.sh' && sudo chmod +x /usr/bin/kickstart"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
 
-      - name: Build Kickstart Container And Run Test
-        run: "kickstart :test"
+      - run: composer install --no-interaction --prefer-dist
+      - run: vendor/bin/phpspec run

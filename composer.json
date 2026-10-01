@@ -18,9 +18,8 @@
     "brace/core": "dev-main"
   },
   "require-dev": {
-    "phpunit/phpunit": "*",
-    "laminas/laminas-diactoros": "2.6.x-dev",
-    "phore/objectstore": "dev-master"
+    "phore/objectstore": "dev-master",
+    "phpspec/phpspec": "^7.6"
   },
   "suggest": {
     "phore/objectstore": "if u want to use objectstore"
@@ -32,14 +31,10 @@
     "files": [
     ]
   },
-  "autoload-dev": {
-    "psr-4": {
-      "Test\\": "test"
-    }
-  },
   "minimum-stability": "dev",
   "extra": {
     "branch-alias": {
     }
-  }
+  },
+  "prefer-stable": true
 }
